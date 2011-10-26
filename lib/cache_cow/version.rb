@@ -1,0 +1,3 @@
+module CacheCow
+  VERSION = "0.0.1"
+end
