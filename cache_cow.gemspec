@@ -8,8 +8,8 @@ Gem::Specification.new do |s|
   s.authors     = ["Ross Kaffenberger"]
   s.email       = ["rosskaff@gmail.com"]
   s.homepage    = ""
-  s.summary     = %q{TODO: Write a gem summary}
-  s.description = %q{TODO: Write a gem description}
+  s.summary     = %q{Allows ActiveRecord models to "acts_as_cached"}
+  s.description = %q{CacheCow provides an api for caching results of methods and associations on ActiveRecord models.}
 
   s.rubyforge_project = "cache_cow"
 
