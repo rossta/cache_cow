@@ -1,0 +1,2 @@
+class BlogComment < Comment
+end

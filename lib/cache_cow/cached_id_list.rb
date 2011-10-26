@@ -12,16 +12,9 @@ module CacheCow
 
         define_method(cache_key) do
           fetch_cache cache_key.inspect, :expires_in => 1.month do
-            send("#{association_name}").select("id").map(&:id)
+            send(association_name).select("id").map(&:id)
           end
         end
-        # self.class_eval <<-RUBY
-        #   def #{cache_key}
-        #     @#{cache_key} ||= Rails.cache.read #{cache_key.inspect}, :expires_in => 1.month do
-        #       #{association_name}.all(:select => #{association_name}.base_class.table_name + ".id").map(&:id)
-        #     end
-        #   end
-        # RUBY
 
         if accessor_name
           self.class_eval <<-RUBY
