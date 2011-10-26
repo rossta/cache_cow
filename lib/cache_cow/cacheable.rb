@@ -3,7 +3,10 @@ module CacheCow
     extend ActiveSupport::Concern
 
     module ClassMethods
-      @@nil_sentinel = :_nil
+
+      def read_cache(cache_id = nil)
+        Rails.cache.read(cache_key(cache_id))
+      end
 
       def fetch_cache(*args, &block)
         options = args.extract_options!
@@ -11,6 +14,18 @@ module CacheCow
 
         # raise "Doesn't support multiget" unless keys.size == 1
         Rails.cache.fetch(cache_key(keys.first), &block)
+      end
+
+      def write_cache(cache_id, value, options = {})
+        Rails.cache.write cache_key(cache_id), value, { :expires_in => 1500 }.merge(options)
+      end
+
+      def expire_cache(cache_id = nil, options = {})
+        Rails.cache.delete cache_key(cache_id), options
+      end
+
+      def cached?(cache_id = nil)
+        read_cache(cache_id).nil? ? false : true
       end
 
       def cache_key(cache_id)

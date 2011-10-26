@@ -30,8 +30,8 @@ module Dummy
     # config.i18n.default_locale = :de
 
     # Memcached configuration
-    # config.cache_store = :memory_store
-    config.cache_store = :dalli_store, 'localhost:11211', { :failover => true }
+    config.cache_store = :memory_store
+    # config.cache_store = :dalli_store, 'localhost:11211', { :failover => true }
 
     # Configure the default encoding used in templates for Ruby 1.9.
     config.encoding = "utf-8"
