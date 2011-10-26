@@ -12,4 +12,5 @@ gemspec
 # your gem to rubygems.org.
 
 # To use debugger
-gem 'ruby-debug19', :require => 'ruby-debug', :platform => :ruby_19
+gem 'ruby-debug19', :platform => :ruby_19, :require => 'ruby-debug'
+gem 'ruby-debug',   :platform => :ruby_18
