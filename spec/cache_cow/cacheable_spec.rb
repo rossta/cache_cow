@@ -51,7 +51,7 @@ describe CacheCow::Cacheable do
 
   describe ".cached?" do
     it "should return true if cache hit" do
-      Post.fetch_cache(cache_key) { "great post" }
+      Post.write_cache(cache_key, "great post")
       Post.cached?(cache_key).should be_true
     end
 
@@ -90,7 +90,7 @@ describe CacheCow::Cacheable do
 
       it "should store value under key namespaced by class and id" do
         post.fetch_cache(cache_key) { "a third great post" }
-        Rails.cache.read(Post.cache_key(post.cache_id(cache_key))).should == "a third great post"
+        Rails.cache.read(post.cache_key(cache_key)).should == "a third great post"
       end
 
       describe "options" do
@@ -102,12 +102,44 @@ describe CacheCow::Cacheable do
 
       # spec for :compress
       # spec for :expires_in
-
     end
 
-    describe "#cache_id" do
+    describe "#write_cache" do
+      it "should write to key for instance" do
+        post.write_cache("foo", "bar")
+        post.read_cache("foo").should == "bar"
+      end
+
+      it "should not write to another instance key" do
+        post.write_cache("foo", "bar")
+        stub_model(Post).read_cache("foo").should be_nil
+      end
+    end
+
+    describe "#read_cache" do
+      it "should read key for instance" do
+        post.write_cache("foo", "bar")
+        post.read_cache("foo").should == "bar"
+      end
+
+      it "should not read key for another instance" do
+        stub_model(Post).write_cache("foo", "bar")
+        post.read_cache("foo").should be_nil
+      end
+    end
+
+    describe "#expire_cache" do
+      it "should expire key for instance" do
+        post.write_cache("foo", "bar")
+        post.read_cache("foo").should == "bar"
+        post.expire_cache("foo")
+        post.read_cache("foo").should be_nil
+      end
+    end
+
+    describe "#cache_key" do
       it "should namespace key by its id" do
-        post.cache_id("cache_key").should == "#{post.id}:cache_key"
+        post.cache_key("cache_key").should == "Post:1:#{post.id}:cache_key"
       end
     end
   end

@@ -4,16 +4,16 @@ module CacheCow
 
     module ClassMethods
 
-      def read_cache(cache_id = nil)
-        Rails.cache.read(cache_key(cache_id))
-      end
-
       def fetch_cache(*args, &block)
         options = args.extract_options!
         keys    = args.flatten
 
         # raise "Doesn't support multiget" unless keys.size == 1
-        Rails.cache.fetch(cache_key(keys.first), &block)
+        Rails.cache.fetch cache_key(keys.first), &block
+      end
+
+      def read_cache(cache_id = nil, options = {})
+        Rails.cache.read cache_key(cache_id), options
       end
 
       def write_cache(cache_id, value, options = {})
@@ -25,7 +25,7 @@ module CacheCow
       end
 
       def cached?(cache_id = nil)
-        read_cache(cache_id).nil? ? false : true
+        Rails.cache.exist?(cache_key(cache_id))
       end
 
       def cache_key(cache_id)
@@ -45,8 +45,26 @@ module CacheCow
     module InstanceMethods
 
       def fetch_cache(key = nil, options = {}, &block)
-        self.class.fetch_cache(cache_id(key), options, &block)
+        self.class.fetch_cache cache_id(key), options, &block
       end
+
+      def write_cache(key = nil, options = {})
+        self.class.write_cache cache_id(key), options
+      end
+
+      def read_cache(key = nil, options = {})
+        self.class.read_cache cache_id(key), options
+      end
+
+      def expire_cache(key = nil, options = {})
+        self.class.expire_cache cache_id(key), options
+      end
+
+      def cache_key(key = nil)
+        self.class.cache_key cache_id(key)
+      end
+
+      protected
 
       def cache_id(key = nil)
         key.nil? ? id.to_s : "#{id}:#{key}"
