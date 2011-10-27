@@ -4,17 +4,18 @@ module CacheCow
 
     module ClassMethods
 
-      def acts_as_cached
+      def cache_cow
         include Cacheable
         include CachedIdList
       end
+      alias_method :acts_as_cached, :cache_cow
 
-      def acts_as_cached_options
-        @acts_as_cached_options ||= {}
+      def cache_cow_versions
+        @cache_cow_versions ||= {}
       end
 
-      def acts_as_cached_version
-        acts_as_cached_options[:version] || 1
+      def cache_cow_version
+        cache_cow_versions[:version] || 1
       end
 
     end
@@ -43,19 +44,19 @@ end
 #
 #   def inherited_with_acts_as_cached(subclass)
 #     inherited_without_acts_as_cached(subclass)
-#     subclass.acts_as_cached acts_as_cached_options
+#     subclass.acts_as_cached cache_cow_versions
 #   end
 #
 #   def acts_as_cached(options = {})
-#     @acts_as_cached_options = options
+#     @cache_cow_versions = options
 #   end
 #
-#   def acts_as_cached_options
-#     @acts_as_cached_options ||= {}
+#   def cache_cow_versions
+#     @cache_cow_versions ||= {}
 #   end
 #
-#   def acts_as_cached_version
-#     acts_as_cached_options[:version] || 1
+#   def cache_cow_version
+#     cache_cow_versions[:version] || 1
 #   end
 #
 #   def cached(method, options = {})
@@ -121,7 +122,7 @@ end
 #   end
 #
 #   def cache_key(cache_id)
-#     [cache_name, acts_as_cached_version, cache_id].compact.join(':').gsub(' ', '_')[0..(max_key_length - 1)]
+#     [cache_name, cache_cow_version, cache_id].compact.join(':').gsub(' ', '_')[0..(max_key_length - 1)]
 #   end
 #
 #   private
