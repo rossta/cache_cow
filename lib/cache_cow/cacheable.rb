@@ -9,27 +9,44 @@ module CacheCow
         keys    = args.flatten
 
         # raise "Doesn't support multiget" unless keys.size == 1
-        Rails.cache.fetch cache_key(keys.first), &block
+        rails_cache.fetch cache_key(keys.first), &block
       end
 
       def read_cache(cache_id = nil, options = {})
-        Rails.cache.read cache_key(cache_id), options
+        rails_cache.read cache_key(cache_id), options
       end
 
       def write_cache(cache_id, value, options = {})
-        Rails.cache.write cache_key(cache_id), value, { :expires_in => 1500 }.merge(options)
+        rails_cache.write cache_key(cache_id), value, { :expires_in => 1500 }.merge(options)
       end
 
       def expire_cache(cache_id = nil, options = {})
-        Rails.cache.delete cache_key(cache_id), options
+        rails_cache.delete cache_key(cache_id), options
+      end
+
+      def read_multi_cache(*cache_ids)
+        cache_keys = cache_ids.map { |cache_id| cache_key(cache_id) }
+        rails_cache.read_multi(*cache_keys)
+      end
+
+      def fetch_multi_cache(*cache_ids, &block)
+        cache_key_map = map_cache_keys_to_cache_ids(cache_ids)
+        cache_keys    = cache_key_map.keys
+        cache_hits    = rails_cache.read_multi(*cache_keys)
+        missed_keys   = cache_keys - cache_hits.keys
+        cache_hits.tap do |hits|
+          missed_keys.each do |cache_key|
+            hits[cache_key] = rails_cache.fetch(cache_key) { block.call(cache_key_map[cache_key]) }
+          end
+        end
       end
 
       def cached?(cache_id = nil)
-        Rails.cache.exist?(cache_key(cache_id))
+        rails_cache.exist?(cache_key(cache_id))
       end
 
       def cache_key(cache_id)
-        [cache_name, acts_as_cached_version, cache_id].compact.join(':').gsub(' ', '_')[0..(max_key_length - 1)]
+        [cache_name, cache_cow_version, cache_id].compact.join(':').gsub(' ', '_')[0..(max_key_length - 1)]
       end
 
       def cache_name
@@ -38,6 +55,20 @@ module CacheCow
 
       def max_key_length
         200
+      end
+
+      private
+
+      def rails_cache
+        Rails.cache
+      end
+
+      def map_cache_keys_to_cache_ids(cache_ids)
+        {}.tap do |map|
+          cache_ids.each do |cache_id|
+            map[cache_key(cache_id)] = cache_id
+          end
+        end
       end
 
     end

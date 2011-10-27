@@ -10,6 +10,10 @@ describe CacheCow::Cacheable do
       Post.fetch_cache(cache_key).should be_nil
     end
 
+    it "returns value from block on read" do
+      Post.fetch_cache(cache_key) { "great post" }.should == "great post"
+    end
+
     it "writes through value from block on read" do
       Post.fetch_cache(cache_key) { "great post" }
       Post.fetch_cache(cache_key).should == "great post"
@@ -49,6 +53,39 @@ describe CacheCow::Cacheable do
     end
   end
 
+  describe ".read_multi_cache" do
+    it "should return hash of existing key:value pairs" do
+      Post.write_cache("x", "post 1")
+      Post.write_cache("y", "post 2")
+      Post.read_multi_cache("x", "y").should == { "Post:1:x" => "post 1", "Post:1:y" => "post 2" }
+    end
+
+    it "should return only matching key:value pairs" do
+      Post.write_cache("x", "post 1")
+      Post.write_cache("y", "post 2")
+      Post.read_multi_cache("x", "z").should == { "Post:1:x" => "post 1" }
+    end
+
+    it "should return empty hash if no matching key:value pairs" do
+      Post.write_cache("x", "post 1")
+      Post.read_multi_cache("y").should == { }
+    end
+  end
+
+  describe ".fetch_multi_cache" do
+    it "should return block value" do
+      Post.fetch_multi_cache("x", "y") { |key| 
+        "great post #{key}"
+      }.should == { "Post:1:x" => "great post x", "Post:1:y" => "great post y" }
+    end
+
+    it "should write through on cache miss" do
+      keys = %w[ x y ]
+      Post.fetch_multi_cache(*keys) { |key| "great post #{key}" }
+      Post.fetch_multi_cache("x", "y").should == { "Post:1:x" => "great post x", "Post:1:y" => "great post y" }
+    end
+  end
+
   describe ".cached?" do
     it "should return true if cache hit" do
       Post.write_cache(cache_key, "great post")
@@ -61,7 +98,6 @@ describe CacheCow::Cacheable do
   end
 
   describe ".cache_key" do
-
     it "should namespace cache_key to class:version:cache_key" do
       Post.cache_key(cache_key).should == "Post:1:post:1"
     end
@@ -69,7 +105,6 @@ describe CacheCow::Cacheable do
     it "should namespace subclass to base class name" do
       BlogPost.cache_key(cache_key).should == "Post:1:post:1"
     end
-
   end
 
   describe "instance_methods" do
